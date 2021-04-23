@@ -1,0 +1,4 @@
+1. Yes
+2. Yes (Location 1, Location 2)
+3. Yes (MST=15, SPT=24)
+Good
