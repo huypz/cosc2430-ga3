@@ -198,25 +198,19 @@ int main(int argc, char** argv) {
 
         // Case 3 (MST & SPT)
         ofs << "3. ";
-        // SPT
-        vector<Edge*> SPT = dijkstra(G, start);
-        int SPT_weight = 0;
-        for (size_t i = 0; i < SPT.size(); i++)
-            SPT_weight += SPT[i]->weight;
-        // (is the distance between any two vertex u and v <= 10?)
-        bool case3 = true;
-        for (size_t i = 0; i < G.V.size(); i++) {
-            if (G.V[i]->d > 10)
-                case3 = false;
-        }
-        ofs << (case3 ? "Yes " : "No ");
-
         // MST
         vector<Edge*> MST = kruskal(G);
         int MST_weight = 0;
         for (size_t i = 0; i < MST.size(); i++)
             MST_weight += MST[i]->weight;
-
+        // SPT
+        vector<Edge*> SPT = dijkstra(G, start);
+        int SPT_weight = 0;
+        for (size_t i = 0; i < SPT.size(); i++)
+            SPT_weight += SPT[i]->weight;
+        // (is the diff between MST and SPT <= 10?)
+        bool case3 = (abs(MST_weight - SPT_weight) <= 10);
+        ofs << (case3 ? "Yes " : "No ");
         ofs << "(MST=" << MST_weight << ", ";
         ofs << "SPT=" << SPT_weight << ")\n";
     }
