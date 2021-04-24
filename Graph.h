@@ -28,14 +28,10 @@ public:
         vector<Edge*> I;
         Position p;
         T elem;
-        // BFS settings
+        // Searching settings
         Color color;
         Vertex* pre;
         int d;
-        // DFS settings
-        int f;
-        // Kruskal settings
-
     };
 
 public:
