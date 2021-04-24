@@ -2,7 +2,6 @@
 #include "Comparator.h"
 #include "Graph.h"
 #include "Partition.h"
-#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -46,19 +45,6 @@ void BFS(const Graph<T>& G, Vertex* s) {
             }
         }
         u->color = BLACK;
-        //cout << **u << " -> ";
-    }
-}
-
-template <typename T>
-void printPath(const Graph<T>& G, Vertex* s, Vertex* v) {
-    if (v == s)
-        cout << **s << " ";
-    else if (v->pre == nullptr)
-        cout << "no path ";
-    else {
-        printPath(G, s, v->pre);
-        cout << **v << " ";
     }
 }
 
@@ -96,6 +82,26 @@ bool relax(Vertex* u, Vertex* v, Edge* e) {
     return false;
 }
 
+void quickSort(vector<Vertex*>& V, int l, int r) {
+    if (l >= r) return;
+    int pivot = V[(l+r)/2]->d;
+    int j = l;
+    int k = r;
+    while (j < k) {
+        while (V[j]->d < pivot)
+            j++;
+        while (V[k]->d > pivot)
+            k--;
+        if (j <= k) {
+            swap(V[j], V[k]);
+            j++;
+            k--;
+        }
+    }
+    quickSort(V, l, k);
+    quickSort(V, j, r);
+}
+
 template <typename T>
 vector<Edge*> dijkstra(Graph<T>& G, Vertex* s) {
     // initialize single source
@@ -106,13 +112,12 @@ vector<Edge*> dijkstra(Graph<T>& G, Vertex* s) {
     s->d = 0;
 
     vector<Edge*> SPT;
-    //priority_queue<Vertex*, vector<Vertex*>, Comparator<T>> pque;
     vector<Vertex*> Q;
     for (size_t i = 0; i < G.V.size(); i++)
         Q.push_back(G.V[i]);
 
     while (!Q.empty()) {
-        sort(Q.begin(), Q.end(), Comparator<T>());
+        quickSort(Q, 0, Q.size() - 1);
         Vertex* u = Q[0];
         Q.erase(Q.begin());
         cout << "Vertex " << **u << endl;
@@ -214,27 +219,13 @@ int main(int argc, char** argv) {
         int MST_weight = 0;
         for (size_t i = 0; i < MST.size(); i++)
             MST_weight += MST[i]->weight;
-            
+
         ofs << "(MST=" << MST_weight << ", ";
         ofs << "SPT=" << SPT_weight << ")\n";
     }
     else {
         quality = "Bad";
     }
-
-    // Vertex* v0 = G.insertVertex(0);
-    // Vertex* v1 = G.insertVertex(1);
-    // Vertex* v2 = G.insertVertex(2);
-    // Vertex* v3 = G.insertVertex(3);
-    // Vertex* v4 = G.insertVertex(4);
-    // Edge* e1 = G.insertEdge(v0, v1, 5);
-    // Edge* e2 = G.insertEdge(v0, v2, 3);
-    // Edge* e3 = G.insertEdge(v1, v2, 7);
-    // Edge* e4 = G.insertEdge(v1, v3, 9);
-    // Edge* e5 = G.insertEdge(v2, v4, 3);
-    // Edge* e6 = G.insertEdge(v3, v4, 4);
-
-    //printPath(G, G.V[2], G.V[3]);
 
     ofs << quality;
 
