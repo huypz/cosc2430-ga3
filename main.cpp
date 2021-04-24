@@ -2,14 +2,11 @@
 #include "Comparator.h"
 #include "Graph.h"
 #include "Partition.h"
-#include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
 #include <queue>
 #include <vector>
-
-using std::cout;    using std::endl;
 
 typedef typename Graph<int>::Vertex Vertex;
 typedef typename Graph<int>::Edge Edge;
@@ -117,10 +114,10 @@ vector<Edge*> dijkstra(Graph<T>& G, Vertex* s) {
         Q.push_back(G.V[i]);
 
     while (!Q.empty()) {
+        // Get vertex with min d
         quickSort(Q, 0, Q.size() - 1);
         Vertex* u = Q[0];
         Q.erase(Q.begin());
-        cout << "Vertex " << **u << endl;
         vector<Edge*> in = u->incidentEdges();
         for (size_t i = 0; i < in.size(); i++) {
             Edge* e = in[i];
