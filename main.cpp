@@ -2,6 +2,7 @@
 #include "Comparator.h"
 #include "Graph.h"
 #include "Partition.h"
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -24,7 +25,7 @@ template <typename T>
 void BFS(const Graph<T>& G, Vertex* s) {
     for (Vertex* v : G.V) {
         v->color = WHITE;
-        v->d = -1;
+        v->d = INT_MAX;
         v->pre = nullptr;
     }
     s->color = GRAY;
@@ -35,8 +36,6 @@ void BFS(const Graph<T>& G, Vertex* s) {
     while (!Q.empty()) {
         Vertex* u = Q.front(); Q.pop();
         vector<Edge*> I = u->incidentEdges();
-        // max adjacent vertices of vertex u > 2
-        if (I.size() > 2) locations.push_back(**u);
         for (size_t i = 0; i < I.size(); i++) {
             Vertex* v = I[i]->opposite(u);
             if (v->color == WHITE) {
@@ -64,37 +63,6 @@ void printPath(const Graph<T>& G, Vertex* s, Vertex* v) {
 }
 
 template <typename T>
-void DFS(const Graph<T>& G) {
-    for (Vertex& v : G.V) {
-        v.color = WHITE;
-        v.pre = nullptr;
-    }
-    time = 0;
-    for (Vertex& v : G.V) {
-        if (v.color == WHITE)
-            DFS(G, v);
-    }
-}
-
-template <typename T>
-void DFSVisit(const Graph<T>& G, Vertex* u) {
-    time += 1;
-    u->d = time;
-    u->color = GRAY;
-    vector<Edge*> I = u->incidentEdges();
-    for (size_t i = 0; i < I.size(); i++) {
-        Vertex* v = I[i]->opposite(u);
-        if (v->color == WHITE) {
-            v->pre = u;
-            DFSVisit(G, v);
-        }
-    }
-    u->color = BLACK;
-    time += 1;
-    u->f = time;
-}
-
-template <typename T>
 vector<Edge*> kruskal(const Graph<T>& G) {
     vector<Edge*> MST;
     Partition<Vertex*> P;
@@ -116,6 +84,57 @@ vector<Edge*> kruskal(const Graph<T>& G) {
         }
     }
     return MST;
+}
+
+template <typename T>
+bool relax(Vertex* u, Vertex* v, Edge* e) {
+    if (v->d > u->d + e->weight) {
+        v->d = u->d + e->weight;
+        v->pre = u;
+        return true;
+    }
+    return false;
+}
+
+template <typename T>
+vector<Edge*> dijkstra(Graph<T>& G, Vertex* s) {
+    // initialize single source
+    for (size_t i = 0; i < G.V.size(); i++) {
+        (G.V[i])->d = INT_MAX;
+        (G.V[i])->pre = nullptr;
+    }
+    s->d = 0;
+
+    vector<Edge*> SPT;
+    //priority_queue<Vertex*, vector<Vertex*>, Comparator<T>> pque;
+    vector<Vertex*> Q;
+    for (size_t i = 0; i < G.V.size(); i++)
+        Q.push_back(G.V[i]);
+
+    while (!Q.empty()) {
+        sort(Q.begin(), Q.end(), Comparator<T>());
+        Vertex* u = Q[0];
+        Q.erase(Q.begin());
+        cout << "Vertex " << **u << endl;
+        vector<Edge*> in = u->incidentEdges();
+        for (size_t i = 0; i < in.size(); i++) {
+            Edge* e = in[i];
+            Vertex* v = e->opposite(u);
+            // relax
+            if(v->d > u->d + e->weight) {
+                v->d = u->d + e->weight;
+                v->pre = u;
+                for (size_t j = 0; j < SPT.size(); j++) {
+                    if (SPT[j]->v == v || SPT[j]->w == v) {
+                        SPT.erase(SPT.begin() + j);
+                        break;
+                    }
+                }
+                SPT.push_back(e);
+            }
+        }
+    }
+    return SPT;
 }
 
 int main(int argc, char** argv) {
@@ -155,8 +174,14 @@ int main(int argc, char** argv) {
     if (connected) {
         // Case 2 (adjacent vertices/locations)
         ofs << "2. ";
+        for (size_t i = 0; i < G.V.size(); i++) {
+            if (G.V[i]->incidentEdges().size() > 2)
+                locations.push_back(i);
+        }
+        Vertex* start = nullptr;
         int l = locations.size();
         if (l > 0) {
+            start = G.V[locations[0]];
             ofs << "Yes (";
             for (size_t i = 0; i < l - 1; i++) {
                 ofs << "Location " << locations[i] << ", ";
@@ -164,22 +189,34 @@ int main(int argc, char** argv) {
             ofs << "Location " << locations[l-1] << ")\n";
         }
         else {
+            start = G.V[0];
             ofs << "No\n";
             quality = "Fair";
         }
 
         // Case 3 (MST & SPT)
         ofs << "3. ";
-        BFS(G, G.V[4]);
-        cout << **G.V[4] << " " << **G.V[0] << endl;
-        printPath(G, G.V[0], G.V[4]);
+        // SPT
+        vector<Edge*> SPT = dijkstra(G, start);
+        int SPT_weight = 0;
+        for (size_t i = 0; i < SPT.size(); i++)
+            SPT_weight += SPT[i]->weight;
+        // (is the distance between any two vertex u and v <= 10?)
+        bool case3 = true;
+        for (size_t i = 0; i < G.V.size(); i++) {
+            if (G.V[i]->d > 10)
+                case3 = false;
+        }
+        ofs << (case3 ? "Yes " : "No ");
+
         // MST
         vector<Edge*> MST = kruskal(G);
-        int total_weight = 0;
+        int MST_weight = 0;
         for (size_t i = 0; i < MST.size(); i++)
-            total_weight += MST[i]->weight;
-        ofs << "(MST=" << total_weight << ", ";
-        
+            MST_weight += MST[i]->weight;
+            
+        ofs << "(MST=" << MST_weight << ", ";
+        ofs << "SPT=" << SPT_weight << ")\n";
     }
     else {
         quality = "Bad";
