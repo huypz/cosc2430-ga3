@@ -13,15 +13,16 @@ typedef typename Graph<int>::Edge Edge;
 
 typedef typename Partition<int>::Position Position;
 
+const int INF = 16777216;
+
 std::string quality = "Good";
-int time;
 std::vector<int> locations;
 
 template <typename T>
 void BFS(const Graph<T>& G, Vertex* s) {
     for (Vertex* v : G.V) {
         v->color = WHITE;
-        v->d = INT_MAX;
+        v->d = INF;
         v->pre = nullptr;
     }
     s->color = GRAY;
@@ -103,7 +104,7 @@ template <typename T>
 vector<Edge*> dijkstra(Graph<T>& G, Vertex* s) {
     // initialize single source
     for (size_t i = 0; i < G.V.size(); i++) {
-        (G.V[i])->d = INT_MAX;
+        (G.V[i])->d = INF;
         (G.V[i])->pre = nullptr;
     }
     s->d = 0;
